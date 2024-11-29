@@ -17,5 +17,5 @@ pip3 install -r requirements.txt
 
 4. Start the program
 ```shell
-python3 test.py
+python3 development.py
 ```

@@ -9,34 +9,38 @@ MAX_HEIGHT = 128
 PADDING = 4
 STEP = 20
 ICON_OFFSET = 3
+TEXT_OFFSET = 2
 
 MIN_COL = 0
 MAX_COL = 13
 MIN_ROW = 0
 MAX_ROW = 5
 
-FONT_NAME = "MaterialSymbolsSharp[FILL,GRAD,opsz,wght].woff2"
-FONT_ICON_VARIANT = "Medium"
 
-FONT_20 = ImageFont.truetype(FONT_NAME, 20)
+TEXT_FONT_NAME = "Roboto-Medium.ttf"
+TEXT_FONT_20 = ImageFont.truetype(TEXT_FONT_NAME, 20)
+TEXT_FONT_16 = ImageFont.truetype(TEXT_FONT_NAME, 16)
 
-FONT_20_EXTRA_LIGHT = ImageFont.truetype(FONT_NAME, 20)
-FONT_20_EXTRA_LIGHT.set_variation_by_name(FONT_ICON_VARIANT)
+ICON_FONT_NAME = "MaterialSymbolsSharp[FILL,GRAD,opsz,wght].woff2"
+ICON_FONT_VARIANT = "Medium"
 
-FONT_20_EXTRA_LIGHT_FILL = ImageFont.truetype(FONT_NAME, 20)
-FONT_20_EXTRA_LIGHT_FILL.set_variation_by_name(FONT_ICON_VARIANT)
-FONT_20_EXTRA_LIGHT_FILL.set_variation_by_axes([1])
+ICON_FONT_20_EXTRA_LIGHT = ImageFont.truetype(ICON_FONT_NAME, 20)
+ICON_FONT_20_EXTRA_LIGHT.set_variation_by_name(ICON_FONT_VARIANT)
 
-# print(f"Font variant: {FONT_ICON_VARIANT}")
+ICON_FONT_20_EXTRA_LIGHT_FILL = ImageFont.truetype(ICON_FONT_NAME, 20)
+ICON_FONT_20_EXTRA_LIGHT_FILL.set_variation_by_name(ICON_FONT_VARIANT)
+ICON_FONT_20_EXTRA_LIGHT_FILL.set_variation_by_axes([1])
+
+# print(f"Font variant: {ICON_FONT_VARIANT}")
 # print(FONT_20.get_variation_names())
 # print(FONT_20.get_variation_axes())
 
 
-def get_grid_coord(row, col, is_icon=False):
-    x = (STEP * col) + PADDING
-    y = (STEP * row)
-    if is_icon:
-        y = y + ICON_OFFSET
+def get_grid_coord(row, col, is_icon=False, is_text=False, additional_x_offset=0, additional_y_offset=0):
+    x = (STEP * col) + PADDING + additional_x_offset
+    y = (STEP * row) + additional_y_offset
+    if is_icon or is_text:
+        y = y + (ICON_OFFSET if is_icon else TEXT_OFFSET)
 
     return x, y
 
@@ -67,27 +71,27 @@ def verify_row_col_bounds(row, col):
         raise Exception(f"Column must be between: {MIN_COL} and {MAX_COL}")
 
 
-def draw_text(draw, row, col, text, font=FONT_20, fill="black"):
+def draw_text(draw, row, col, text, font=TEXT_FONT_20, fill="black", additional_x_offset=0, additional_y_offset=0):
     verify_row_col_bounds(row, col)
 
     draw.text((
-        get_grid_coord(row, col)
+        get_grid_coord(row, col, is_text=True, additional_x_offset=additional_x_offset, additional_y_offset=additional_y_offset)
     ), f"{text}", font=font, fill=fill)
 
 
-def draw_icon(draw, row, col, text, font=FONT_20_EXTRA_LIGHT, fill="black"):
+def draw_icon(draw, row, col, text, font=ICON_FONT_20_EXTRA_LIGHT, fill="black", additional_x_offset=0, additional_y_offset=0):
     verify_row_col_bounds(row, col)
 
     draw.text((
-        get_grid_coord(row, col, True)
+        get_grid_coord(row, col, True, additional_x_offset=additional_x_offset, additional_y_offset=additional_y_offset)
     ), f"{text}", font=font, fill=fill)
 
 
-def draw_icon_inverse(draw, row, col, text, font=FONT_20_EXTRA_LIGHT_FILL, fill="black"):
+def draw_icon_inverse(draw, row, col, text, font=ICON_FONT_20_EXTRA_LIGHT_FILL, fill="black", additional_x_offset=0, additional_y_offset=0):
     verify_row_col_bounds(row, col)
 
     draw.text((
-        get_grid_coord(row, col, True)
+        get_grid_coord(row, col, True, additional_x_offset=additional_x_offset, additional_y_offset=additional_y_offset)
     ), f"{text}", font=font, fill=fill)
 
 

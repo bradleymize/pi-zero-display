@@ -1,10 +1,13 @@
-import random
+import subprocess
 import icons
 
 
 def get_wifi_strength():
-    # TODO: Implement
-    return random.randint(-100, -55)
+    return int(subprocess.check_output(
+        "iwconfig wlan0 | grep Signal | cut -d'=' -f3 | cut -d' ' -f1",
+        shell=True,
+        text=True
+    ).strip())
 
 
 def get_wifi_strength_icon(strength):

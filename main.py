@@ -1,4 +1,5 @@
 from stats import get_wifi_strength_icon, get_wifi_strength
+from PIL import Image
 import layout
 import icons
 import logging
@@ -85,8 +86,14 @@ try:
     layout.draw_icon(draw, 5, 13, icons.REFRESH)
 
     layout.fill_row(draw, 0, fill="black")
+    layout.fill_row(draw, 3, fill="black")
 
-    layout.draw_text(draw, 0, 0, "Header", fill="white")
+    layout.draw_text(draw, 0, 0, "Title", fill="white")
+    layout.draw_text(draw, 1, 0, "Title")
+    layout.draw_text(draw, 2, 0, "Title", font=layout.TEXT_FONT_16)
+    layout.draw_text(draw, 3, 0, "Title", fill="white", font=layout.TEXT_FONT_16, additional_y_offset=2, additional_x_offset=2)
+
+    img = img.transpose(Image.ROTATE_180)
 
     if SHOW_GRIDLINES:
         layout.show_gridlines(draw)
