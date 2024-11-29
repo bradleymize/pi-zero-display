@@ -42,7 +42,7 @@ class INCT86:
         
     def ICNT_ReadVersion(self):
         buf = self.ICNT_Read(0x000a, 4)
-        print(buf)
+        # print(buf)
 
     def ICNT_Init(self):
         self.ICNT_Reset()
@@ -83,7 +83,7 @@ class INCT86:
                     ICNT_Dev.Y[i] = 127 - ((buf[4 + 7*i] << 8) + buf[3 + 7*i])
                     ICNT_Dev.P[i] = buf[5 + 7*i]
 
-                print(ICNT_Dev.X[0], ICNT_Dev.Y[0], ICNT_Dev.P[0])
+                # print(ICNT_Dev.X[0], ICNT_Dev.Y[0], ICNT_Dev.P[0])
                 return
         return
                 

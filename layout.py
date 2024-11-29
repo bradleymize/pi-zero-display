@@ -1,4 +1,8 @@
 from PIL import Image, ImageFont, ImageDraw
+import math
+import logging
+
+log = logging.getLogger(__name__)
 
 MAX_WIDTH = 296
 MAX_HEIGHT = 128
@@ -11,14 +15,19 @@ MAX_COL = 13
 MIN_ROW = 0
 MAX_ROW = 5
 
-FONT_20 = ImageFont.truetype("MaterialSymbolsSharp[FILL,GRAD,opsz,wght].woff2", 20)
+FONT_NAME = "MaterialSymbolsSharp[FILL,GRAD,opsz,wght].woff2"
+FONT_ICON_VARIANT = "Medium"
 
-FONT_20_EXTRA_LIGHT = ImageFont.truetype("MaterialSymbolsSharp[FILL,GRAD,opsz,wght].woff2", 20)
-FONT_20_EXTRA_LIGHT.set_variation_by_name("ExtraLight")
+FONT_20 = ImageFont.truetype(FONT_NAME, 20)
 
-FONT_20_EXTRA_LIGHT_FILL = ImageFont.truetype("MaterialSymbolsSharp[FILL,GRAD,opsz,wght].woff2", 20)
-FONT_20_EXTRA_LIGHT_FILL.set_variation_by_name("ExtraLight")
+FONT_20_EXTRA_LIGHT = ImageFont.truetype(FONT_NAME, 20)
+FONT_20_EXTRA_LIGHT.set_variation_by_name(FONT_ICON_VARIANT)
+
+FONT_20_EXTRA_LIGHT_FILL = ImageFont.truetype(FONT_NAME, 20)
+FONT_20_EXTRA_LIGHT_FILL.set_variation_by_name(FONT_ICON_VARIANT)
 FONT_20_EXTRA_LIGHT_FILL.set_variation_by_axes([1])
+
+# print(f"Font variant: {FONT_ICON_VARIANT}")
 # print(FONT_20.get_variation_names())
 # print(FONT_20.get_variation_axes())
 
@@ -120,3 +129,22 @@ def fill_col(draw, col, start=MIN_ROW, end=MAX_ROW, fill="black"):
 
     for i in range(start, end + 1):
         fill_cell(draw, i, col, fill)
+
+
+def get_touch_cell(x, y):
+    col = math.floor((x - PADDING) / STEP)
+    row = math.floor((y - PADDING) / STEP)
+
+    if col > MAX_COL:
+        col = MAX_COL
+    if col < MIN_COL:
+        col = MIN_COL
+
+    if row > MAX_ROW:
+        row = MAX_ROW
+    if row < MIN_ROW:
+        row = MIN_ROW
+
+    log.info(f"Touched: ({x},{y}) = Column {col}, Row {row}")
+
+    return col, row
