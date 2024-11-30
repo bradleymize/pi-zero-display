@@ -6,7 +6,8 @@ log = logging.getLogger(__name__)
 
 MAX_WIDTH = 296
 MAX_HEIGHT = 128
-PADDING = 4
+PADDING_LEFT = 8
+PADDING_TOP = 4
 STEP = 20
 ICON_OFFSET = 3
 TEXT_OFFSET = 2
@@ -39,7 +40,7 @@ FLIPPED = False
 
 
 def get_grid_coord(row, col, is_icon=False, is_text=False, additional_x_offset=0, additional_y_offset=0):
-    x = (STEP * col) + PADDING + additional_x_offset
+    x = (STEP * col) + PADDING_LEFT + additional_x_offset
     y = (STEP * row) + additional_y_offset
     if is_icon or is_text:
         y = y + (ICON_OFFSET if is_icon else TEXT_OFFSET)
@@ -48,14 +49,20 @@ def get_grid_coord(row, col, is_icon=False, is_text=False, additional_x_offset=0
 
 
 def show_gridlines(img_draw):
+    # STEP * (MAX_ROW/COL * 2) --> plus 2 due to:
+    #    zero based
+    #    and then needing to go to the end of the last cell, not the beginning
+
     # Draw Horizontal lines
-    for y in range(PADDING, MAX_HEIGHT, STEP):
-        shape = [(PADDING, y), (MAX_WIDTH-PADDING, y)]
+    for y in range(PADDING_TOP, STEP * (MAX_ROW + 2), STEP):
+        # plus 1 due to zero based
+        shape = [(PADDING_LEFT, y), (STEP * (MAX_COL + 1) + PADDING_LEFT, y)]
         img_draw.line(shape, fill="black", width=0)
 
     # Draw vertical lines
-    for x in range(PADDING, MAX_WIDTH, STEP):
-        shape = [(x, PADDING), (x, MAX_HEIGHT-PADDING)]
+    for x in range(PADDING_LEFT, STEP * (MAX_COL + 2), STEP):
+        # plus 1 due to zero based
+        shape = [(x, PADDING_TOP), (x, STEP * (MAX_ROW + 1) + PADDING_TOP)]
         img_draw.line(shape, fill="black", width=0)
 
 
@@ -99,12 +106,12 @@ def draw_icon_inverse(draw, row, col, text, font=ICON_FONT_20_EXTRA_LIGHT_FILL, 
 
 def fill_cell(draw, row, col, fill="black"):
     start_x, start_y = get_grid_coord(row, col)
-    start_y = start_y + PADDING
+    start_y = start_y + PADDING_TOP
     # print(f"({start_x},{start_y})")
 
     end_x, end_y = get_grid_coord(row+1, col+1)
     end_x = end_x - 1
-    end_y = end_y + PADDING - 1
+    end_y = end_y + PADDING_TOP - 1
     # print(f"({end_x},{end_y})")
 
     draw.rectangle([
@@ -141,8 +148,8 @@ def get_touch_cell(x, y):
     if FLIPPED:
         x = MAX_WIDTH - x
         y = MAX_HEIGHT - y
-    col = math.floor((x - PADDING) / STEP)
-    row = math.floor((y - PADDING) / STEP)
+    col = math.floor((x - PADDING_LEFT) / STEP)
+    row = math.floor((y - PADDING_TOP) / STEP)
 
     if col > MAX_COL:
         col = MAX_COL

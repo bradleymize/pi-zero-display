@@ -23,7 +23,7 @@ def setup_logger():
 
 setup_logger()
 log = logging.getLogger(__name__)
-SHOW_GRIDLINES = False
+SHOW_GRIDLINES = True
 
 flag_t = 1
 
