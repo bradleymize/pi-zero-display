@@ -1,4 +1,8 @@
 from abc import ABC, abstractmethod
+import layout
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class AbstractScreen(ABC):
@@ -12,7 +16,9 @@ class AbstractScreen(ABC):
 
     @abstractmethod
     def render(self, img, draw):
-        pass
+        if layout.SHOW_GRIDLINES:
+            log.info("Drawing gridlines")
+            layout.show_gridlines(draw)
 
     def handle_touch(self, row, column):
         action = self.registered_events.get((row, column), None)

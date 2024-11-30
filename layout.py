@@ -33,6 +33,8 @@ ICON_FONT_20_EXTRA_LIGHT_FILL.set_variation_by_name(ICON_FONT_VARIANT)
 ICON_FONT_20_EXTRA_LIGHT_FILL.set_variation_by_axes([1])
 
 FLIPPED = False
+IMAGE_WAS_FLIPPED = False
+SHOW_GRIDLINES = False
 
 # print(f"Font variant: {ICON_FONT_VARIANT}")
 # print(FONT_20.get_variation_names())
@@ -67,8 +69,10 @@ def show_gridlines(img_draw):
 
 
 def create_new_image():
+    global IMAGE_WAS_FLIPPED
     img = Image.new("RGB", (MAX_WIDTH, MAX_HEIGHT), (255, 255, 255))
     draw = ImageDraw.Draw(img)
+    IMAGE_WAS_FLIPPED = False
 
     return img, draw
 

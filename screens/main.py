@@ -3,8 +3,8 @@ import layout
 import icons
 import stats
 from datetime import datetime
-from PIL import Image
 import logging
+from PIL import Image
 
 log = logging.getLogger(__name__)
 
@@ -18,23 +18,25 @@ class MainScreen(AbstractScreen):
 
     def render(self, img, draw):
         # if switching_to: refresh screen before rendering
-        log.info("Rendering main screen")
+        log.debug("Rendering main screen")
+        super().render(img, draw)
         self.draw_header(img, draw)
         self.draw_footer(img, draw)
-        if layout.FLIPPED:
-            log.info("Rotating image 180 degrees")
-            img = img.transpose(Image.ROTATE_180)
-        return img
 
-    # def handle_touch(self, row, column):
-    #     action = self.registered_events.get((row, column), None)
-    #     if action:
-    #         action()
+        # Rotating must be the last thing that is done # TODO: Somehow do gridlines before, rotate after, automatically
+        if layout.FLIPPED and not layout.IMAGE_WAS_FLIPPED:
+            log.debug("Rotating image 180 degrees")
+            img = img.transpose(Image.ROTATE_180)
+            layout.IMAGE_WAS_FLIPPED = True
+
+        return img
 
     def draw_header(self, img, draw):
         layout.fill_row(draw, 0, fill="black")
         layout.draw_text(draw, 0, 0, "Main", fill="white")
-        layout.draw_text(draw, 0, 13, self.get_date_time_string(), fill="white", anchor="ra", additional_x_offset=layout.STEP-1)
+        date_time_string = self.get_date_time_string()
+        log.debug(f"Updating time to: {date_time_string}")
+        layout.draw_text(draw, 0, 13, date_time_string, fill="white", anchor="ra", additional_x_offset=layout.STEP-1)
 
     def draw_footer(self, img, draw):
         layout.draw_icon(draw, 5, 0, icons.INFO)
@@ -42,7 +44,7 @@ class MainScreen(AbstractScreen):
         layout.draw_icon(draw, 5, 13, icons.SETTINGS)
 
     def get_date_time_string(self):
-        return datetime.now().strftime("%m/%d/%y %I:%M %p")
+        return datetime.now().strftime("%m/%d/%y %I:%M:%S %p")
 
     def load_settings(self):
         log.info("Load Settings")

@@ -9,6 +9,8 @@ import sys
 from library import epd2in9_V2, icnt86
 import threading
 import time
+import math
+from PIL import Image
 ###################
 
 
@@ -23,7 +25,8 @@ def setup_logger():
 
 setup_logger()
 log = logging.getLogger(__name__)
-SHOW_GRIDLINES = True
+layout.FLIPPED = True
+layout.SHOW_GRIDLINES = False
 
 flag_t = 1
 
@@ -87,16 +90,14 @@ try:
     #
     # img = img.transpose(Image.ROTATE_180)
 
-    if SHOW_GRIDLINES:
-        layout.show_gridlines(draw)
     ####################################################
 
-    layout.FLIPPED = True
     main_screen = MainScreen()
+    log.info("Rendering initial main screen")
     img = main_screen.render(img, draw)
     epd.display_Base(epd.getbuffer(img))
 
-    i = j = k = ReFlag = SelfFlag = Page = Photo_L = Photo_S = 0
+    touch_count = j = k = refresh_flag = SelfFlag = Page = Photo_L = Photo_S = 0
     font24 = font15 = None
 
 
@@ -108,20 +109,22 @@ try:
     PagePath = []
 
     while True:
-        if i > 20 or ReFlag == 1:
+        if touch_count > 20 or refresh_flag == 1:
             if Page == 0:
-                pass
+                # Must request a new image prior to updating a drawing (can't edit once epd has been updated?)
+                img, draw = layout.create_new_image()
+                img = main_screen.render(img, draw)
                 # print("*** Time Refresh ***\r\n")
 
             epd.display_Partial_Wait(epd.getbuffer(img))
             # print("*** Touch Refresh ***\r\n")
-            i = 0
+            touch_count = 0
             k = 0
             j += 1
-            ReFlag = 0
-        elif k > 50000 and i > 0 and Page == 1:
+            refresh_flag = 0
+        elif k > 50000 and touch_count > 0 and Page == 1:
             epd.display_Partial_Wait(epd.getbuffer(img))
-            i = 0
+            touch_count = 0
             k = 0
             j += 1
             # print("*** Overtime Refresh ***\r\n")
@@ -134,8 +137,12 @@ try:
         else:
             k += 1
 
-        if Page == 0 and k > 5000000:
-            ReFlag = 1
+        # if main screen
+        # and current time is n-second-interval (e.g. % 60 = every 60 seconds, % 20 = every 20 seconds)
+        current_timestamp = time.time()
+        if Page == 0 and math.floor(current_timestamp) % 1 == 0:
+            log.debug("Time refresh")
+            refresh_flag = 1
 
         touch_panel.ICNT_Scan(touch_event_current, touch_event_old)
         if touch_event_old.X[0] == touch_event_current.X[0] and touch_event_old.Y[0] == touch_event_current.Y[0]:
@@ -143,12 +150,12 @@ try:
 
         if touch_event_current.TouchCount:
             touch_event_current.TouchCount = 0
-            i += 1
+            touch_count += 1
             col, row = layout.get_touch_cell(touch_event_current.X[0], touch_event_current.Y[0])
-            if Page == 0 and ReFlag == 0:     # main menu
+            if Page == 0 and refresh_flag == 0:     # main menu
                 log.info(f"Handling touch for main screen ({row}, {col})")
                 main_screen.handle_touch(row, col)
-                ReFlag = 1
+                refresh_flag = 1
 
             # if Page == 1 and ReFlag == 0:   # weather
             #     if touch_event_current.X[0] > 136 and touch_event_current.X[0] < 159 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
