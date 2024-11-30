@@ -44,7 +44,7 @@ class MainScreen(AbstractScreen):
         layout.draw_icon(draw, 5, 13, icons.SETTINGS)
 
     def get_date_time_string(self):
-        return datetime.now().strftime("%m/%d/%y %I:%M:%S %p")
+        return datetime.now().strftime("%m/%d/%y %-I:%M:%S %p")
 
     def load_settings(self):
         log.info("Load Settings")
