@@ -31,6 +31,8 @@ ICON_FONT_20_EXTRA_LIGHT_FILL = ImageFont.truetype(ICON_FONT_NAME, 20)
 ICON_FONT_20_EXTRA_LIGHT_FILL.set_variation_by_name(ICON_FONT_VARIANT)
 ICON_FONT_20_EXTRA_LIGHT_FILL.set_variation_by_axes([1])
 
+FLIPPED = False
+
 # print(f"Font variant: {ICON_FONT_VARIANT}")
 # print(FONT_20.get_variation_names())
 # print(FONT_20.get_variation_axes())
@@ -71,12 +73,12 @@ def verify_row_col_bounds(row, col):
         raise Exception(f"Column must be between: {MIN_COL} and {MAX_COL}")
 
 
-def draw_text(draw, row, col, text, font=TEXT_FONT_20, fill="black", additional_x_offset=0, additional_y_offset=0):
+def draw_text(draw, row, col, text, font=TEXT_FONT_20, fill="black", additional_x_offset=0, additional_y_offset=0, anchor="la"):
     verify_row_col_bounds(row, col)
 
     draw.text((
         get_grid_coord(row, col, is_text=True, additional_x_offset=additional_x_offset, additional_y_offset=additional_y_offset)
-    ), f"{text}", font=font, fill=fill)
+    ), f"{text}", font=font, fill=fill, anchor=anchor)
 
 
 def draw_icon(draw, row, col, text, font=ICON_FONT_20_EXTRA_LIGHT, fill="black", additional_x_offset=0, additional_y_offset=0):
@@ -136,6 +138,9 @@ def fill_col(draw, col, start=MIN_ROW, end=MAX_ROW, fill="black"):
 
 
 def get_touch_cell(x, y):
+    if FLIPPED:
+        x = MAX_WIDTH - x
+        y = MAX_HEIGHT - y
     col = math.floor((x - PADDING) / STEP)
     row = math.floor((y - PADDING) / STEP)
 

@@ -1,7 +1,5 @@
-from stats import get_wifi_strength_icon, get_wifi_strength
-from PIL import Image
+from screens.main import MainScreen
 import layout
-import icons
 import logging
 import datetime
 import sys
@@ -25,13 +23,7 @@ def setup_logger():
 
 setup_logger()
 log = logging.getLogger(__name__)
-
-SHOW_GRIDLINES = True
-
-##################################################################
-
-# img.show()
-# img.save("screen.png")
+SHOW_GRIDLINES = False
 
 flag_t = 1
 
@@ -68,37 +60,40 @@ try:
     ####################################################
     img, draw = layout.create_new_image()
 
-    wifi_strength = get_wifi_strength()
-
-    layout.draw_icon(draw, 5, 0, get_wifi_strength_icon(wifi_strength))
-    layout.draw_icon(draw, 5, 1, icons.TOGGLE_OFF)
-    layout.draw_icon_inverse(draw, 5, 2, icons.TOGGLE_ON)
-    layout.draw_icon(draw, 5, 3, icons.SETTINGS)
-    layout.draw_icon(draw, 5, 4, icons.HOME)
-    layout.draw_icon(draw, 5, 5, icons.CHECKBOX)
-    layout.draw_icon(draw, 5, 6, icons.CHECKBOX_CHECKED)
-    layout.draw_icon(draw, 5, 7, icons.INFO)
-    layout.draw_icon(draw, 5, 8, icons.POWER_OFF)
-    layout.draw_icon(draw, 5, 9, icons.UP)
-    layout.draw_icon(draw, 5, 10, icons.DOWN)
-    layout.draw_icon(draw, 5, 11, icons.LEFT)
-    layout.draw_icon(draw, 5, 12, icons.RIGHT)
-    layout.draw_icon(draw, 5, 13, icons.REFRESH)
-
-    layout.fill_row(draw, 0, fill="black")
-    layout.fill_row(draw, 3, fill="black")
-
-    layout.draw_text(draw, 0, 0, "Title", fill="white")
-    layout.draw_text(draw, 1, 0, "Title")
-    layout.draw_text(draw, 2, 0, "Title", font=layout.TEXT_FONT_16)
-    layout.draw_text(draw, 3, 0, "Title", fill="white", font=layout.TEXT_FONT_16, additional_y_offset=2, additional_x_offset=2)
-
-    img = img.transpose(Image.ROTATE_180)
+    # wifi_strength = get_wifi_strength()
+    #
+    # layout.draw_icon(draw, 5, 0, get_wifi_strength_icon(wifi_strength))
+    # layout.draw_icon(draw, 5, 1, icons.TOGGLE_OFF)
+    # layout.draw_icon_inverse(draw, 5, 2, icons.TOGGLE_ON)
+    # layout.draw_icon(draw, 5, 3, icons.SETTINGS)
+    # layout.draw_icon(draw, 5, 4, icons.HOME)
+    # layout.draw_icon(draw, 5, 5, icons.CHECKBOX)
+    # layout.draw_icon(draw, 5, 6, icons.CHECKBOX_CHECKED)
+    # layout.draw_icon(draw, 5, 7, icons.INFO)
+    # layout.draw_icon(draw, 5, 8, icons.POWER_OFF)
+    # layout.draw_icon(draw, 5, 9, icons.UP)
+    # layout.draw_icon(draw, 5, 10, icons.DOWN)
+    # layout.draw_icon(draw, 5, 11, icons.LEFT)
+    # layout.draw_icon(draw, 5, 12, icons.RIGHT)
+    # layout.draw_icon(draw, 5, 13, icons.REFRESH)
+    #
+    # layout.fill_row(draw, 0, fill="black")
+    # layout.fill_row(draw, 3, fill="black")
+    #
+    # layout.draw_text(draw, 0, 0, "Title", fill="white")
+    # layout.draw_text(draw, 1, 0, "Title")
+    # layout.draw_text(draw, 2, 0, "Title", font=layout.TEXT_FONT_16)
+    # layout.draw_text(draw, 3, 0, "Title", fill="white", font=layout.TEXT_FONT_16, additional_y_offset=2, additional_x_offset=2)
+    #
+    # img = img.transpose(Image.ROTATE_180)
 
     if SHOW_GRIDLINES:
         layout.show_gridlines(draw)
     ####################################################
 
+    layout.FLIPPED = True
+    main_screen = MainScreen()
+    img = main_screen.render(img, draw)
     epd.display_Base(epd.getbuffer(img))
 
     i = j = k = ReFlag = SelfFlag = Page = Photo_L = Photo_S = 0
@@ -149,19 +144,11 @@ try:
         if touch_event_current.TouchCount:
             touch_event_current.TouchCount = 0
             i += 1
-            row, col = layout.get_touch_cell(touch_event_current.X[0], touch_event_current.Y[0])
+            col, row = layout.get_touch_cell(touch_event_current.X[0], touch_event_current.Y[0])
             if Page == 0 and ReFlag == 0:     # main menu
-                if touch_event_current.X[0] > 119 and touch_event_current.X[0] < 152 and touch_event_current.Y[0] > 31 and touch_event_current.Y[0] < 96:
-                    # print("Touched Photo ...\r\n")
-                    # Page = 2
-                    # Read_BMP(PagePath[Page], 0, 0)
-                    # Show_Photo_Small(img, Photo_S)
-                    ReFlag = 1
-                elif touch_event_current.X[0] > 39 and touch_event_current.X[0] < 80 and touch_event_current.Y[0] > 31 and touch_event_current.Y[0] < 96:
-                    # print("Touched Weather ...\r\n")
-                    # Page = 1
-                    # Read_BMP(PagePath[Page], 0, 0)
-                    ReFlag = 1
+                log.info(f"Handling touch for main screen ({row}, {col})")
+                main_screen.handle_touch(row, col)
+                ReFlag = 1
 
             # if Page == 1 and ReFlag == 0:   # weather
             #     if touch_event_current.X[0] > 136 and touch_event_current.X[0] < 159 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
