@@ -5,20 +5,26 @@ import stats
 from datetime import datetime
 import logging
 from PIL import Image
+from screen import get_display, set_current_page
 
 log = logging.getLogger(__name__)
 
 
 class MainScreen(AbstractScreen):
     def __init__(self):
-        # TODO: self.register_touch_event()
+        super().__init__()
         self.register_touch_event((5, 0), self.load_info)
         self.register_touch_event((5, 13), self.load_settings)
-        pass
 
-    def render(self, img, draw):
+    def render(self, img_old, draw_old):
         # if switching_to: refresh screen before rendering
         log.debug("Rendering main screen")
+        img = self.render_img()
+        display = get_display()
+        display.display_Partial_Wait(display.getbuffer(img))
+
+    def render_img(self):
+        img, draw = layout.create_new_image()
         super().render(img, draw)
         self.draw_header(img, draw)
         self.draw_footer(img, draw)
@@ -44,10 +50,11 @@ class MainScreen(AbstractScreen):
         layout.draw_icon(draw, 5, 13, icons.SETTINGS)
 
     def get_date_time_string(self):
-        return datetime.now().strftime("%m/%d/%y %-I:%M:%S %p")
+        return datetime.now().strftime("%m/%d/%y %-I:%M %p")
 
     def load_settings(self):
         log.info("Load Settings")
 
     def load_info(self):
         log.info("Load Info")
+        set_current_page('InfoScreen')

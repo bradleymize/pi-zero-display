@@ -1,4 +1,3 @@
-from screens.main import MainScreen
 import layout
 import logging
 import datetime
@@ -10,7 +9,7 @@ from library import epd2in9_V2, icnt86
 import threading
 import time
 import math
-from PIL import Image
+from screen import set_display, get_display, SCREENS, set_current_page, get_current_page
 ###################
 
 
@@ -46,56 +45,24 @@ def pthread_irq():
 try:
     log.info("epd2in9_V2 Touch Demo")
 
-    epd = epd2in9_V2.EPD_2IN9_V2()
+    set_display(epd2in9_V2.EPD_2IN9_V2())
+    display = get_display()
     touch_panel = icnt86.INCT86()
     touch_event_current = icnt86.ICNT_Development()
     touch_event_old = icnt86.ICNT_Development()
 
     logging.info("init and Clear")
-    epd.init()
+    display.init()
     touch_panel.ICNT_Init()
-    epd.Clear(0xFF)
+    display.Clear(0xFF)
 
     t1 = threading.Thread(target=pthread_irq)
     t1.daemon = True
     t1.start()
 
-    ####################################################
-    img, draw = layout.create_new_image()
-
-    # wifi_strength = get_wifi_strength()
-    #
-    # layout.draw_icon(draw, 5, 0, get_wifi_strength_icon(wifi_strength))
-    # layout.draw_icon(draw, 5, 1, icons.TOGGLE_OFF)
-    # layout.draw_icon_inverse(draw, 5, 2, icons.TOGGLE_ON)
-    # layout.draw_icon(draw, 5, 3, icons.SETTINGS)
-    # layout.draw_icon(draw, 5, 4, icons.HOME)
-    # layout.draw_icon(draw, 5, 5, icons.CHECKBOX)
-    # layout.draw_icon(draw, 5, 6, icons.CHECKBOX_CHECKED)
-    # layout.draw_icon(draw, 5, 7, icons.INFO)
-    # layout.draw_icon(draw, 5, 8, icons.POWER_OFF)
-    # layout.draw_icon(draw, 5, 9, icons.UP)
-    # layout.draw_icon(draw, 5, 10, icons.DOWN)
-    # layout.draw_icon(draw, 5, 11, icons.LEFT)
-    # layout.draw_icon(draw, 5, 12, icons.RIGHT)
-    # layout.draw_icon(draw, 5, 13, icons.REFRESH)
-    #
-    # layout.fill_row(draw, 0, fill="black")
-    # layout.fill_row(draw, 3, fill="black")
-    #
-    # layout.draw_text(draw, 0, 0, "Title", fill="white")
-    # layout.draw_text(draw, 1, 0, "Title")
-    # layout.draw_text(draw, 2, 0, "Title", font=layout.TEXT_FONT_16)
-    # layout.draw_text(draw, 3, 0, "Title", fill="white", font=layout.TEXT_FONT_16, additional_y_offset=2, additional_x_offset=2)
-    #
-    # img = img.transpose(Image.ROTATE_180)
-
-    ####################################################
-
-    main_screen = MainScreen()
     log.info("Rendering initial main screen")
-    img = main_screen.render(img, draw)
-    epd.display_Base(epd.getbuffer(img))
+    img = SCREENS['MainScreen'].render_img()
+    display.display_Base(display.getbuffer(img))
 
     touch_count = j = k = refresh_flag = SelfFlag = Page = Photo_L = Photo_S = 0
     font24 = font15 = None
@@ -106,43 +73,60 @@ try:
 
 
     Read_BMP = Show_Photo_Small = Show_Photo_Large = Draw_Time
-    PagePath = []
+
+    #############################################################
+    # My better-named properties/flags to replace previous ones #
+    set_current_page('MainScreen')
+    should_draw = False
+    #############################################################
 
     while True:
-        if touch_count > 20 or refresh_flag == 1:
-            if Page == 0:
-                # Must request a new image prior to updating a drawing (can't edit once epd has been updated?)
-                img, draw = layout.create_new_image()
-                img = main_screen.render(img, draw)
-                # print("*** Time Refresh ***\r\n")
+        if should_draw:
+            SCREENS[get_current_page()].render("None", "None")
+            should_draw = False
+            touch_count = 0
+            k = 0
+            j += 1
 
-            epd.display_Partial_Wait(epd.getbuffer(img))
-            # print("*** Touch Refresh ***\r\n")
-            touch_count = 0
-            k = 0
-            j += 1
-            refresh_flag = 0
-        elif k > 50000 and touch_count > 0 and Page == 1:
-            epd.display_Partial_Wait(epd.getbuffer(img))
-            touch_count = 0
-            k = 0
-            j += 1
-            # print("*** Overtime Refresh ***\r\n")
-        elif j > 50 or SelfFlag:
-            SelfFlag = 0
-            j = 0
-            epd.init()
-            epd.display_Base(epd.getbuffer(img))
-            # print("--- Self Refresh ---\r\n")
-        else:
-            k += 1
+        # if touch_count > 20 or refresh_flag == 1:
+        #     if get_current_page() == 'MainScreen':
+        #         # Must request a new image prior to updating a drawing (can't edit once epd has been updated?)
+        #         SCREENS['MainScreen'].render("None", "None")
+        #         # print("*** Time Refresh ***\r\n")
+        #
+        #     # display.display_Partial_Wait(display.getbuffer(img))
+        #     # print("*** Touch Refresh ***\r\n")
+        #     touch_count = 0
+        #     k = 0
+        #     j += 1
+        #     refresh_flag = 0
+        # elif k > 50000 and touch_count > 0 and Page == 1:
+        #     display.display_Partial_Wait(display.getbuffer(img))
+        #     touch_count = 0
+        #     k = 0
+        #     j += 1
+        #     # print("*** Overtime Refresh ***\r\n")
+        # elif j > 50 or SelfFlag:
+        #     SelfFlag = 0
+        #     j = 0
+        #     display.init()
+        #     display.display_Base(display.getbuffer(img))
+        #     # print("--- Self Refresh ---\r\n")
+        # else:
+        #     k += 1
 
         # if main screen
         # and current time is n-second-interval (e.g. % 60 = every 60 seconds, % 20 = every 20 seconds)
         current_timestamp = time.time()
-        if Page == 0 and math.floor(current_timestamp) % 1 == 0:
-            log.debug("Time refresh")
-            refresh_flag = 1
+        current_timestamp_seconds = math.floor(current_timestamp)
+        last_timestamp_seconds = None
+        if (get_current_page() == 'MainScreen'
+                and current_timestamp_seconds % 60 == 0
+                and not current_timestamp_seconds == last_timestamp_seconds
+        ):
+            last_timestamp_seconds = current_timestamp_seconds
+            log.info("Time refresh")
+            should_draw = True
 
         touch_panel.ICNT_Scan(touch_event_current, touch_event_old)
         if touch_event_old.X[0] == touch_event_current.X[0] and touch_event_old.Y[0] == touch_event_current.Y[0]:
@@ -152,89 +136,9 @@ try:
             touch_event_current.TouchCount = 0
             touch_count += 1
             col, row = layout.get_touch_cell(touch_event_current.X[0], touch_event_current.Y[0])
-            if Page == 0 and refresh_flag == 0:     # main menu
-                log.info(f"Handling touch for main screen ({row}, {col})")
-                main_screen.handle_touch(row, col)
-                refresh_flag = 1
-
-            # if Page == 1 and ReFlag == 0:   # weather
-            #     if touch_event_current.X[0] > 136 and touch_event_current.X[0] < 159 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Home ...\r\n")
-            #         Page = 0
-            #         Read_BMP(PagePath[Page], 0, 0)
-            #         ReFlag = 1
-            #     elif touch_event_current.X[0] > 5 and touch_event_current.X[0] < 27 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Refresh ...\r\n")
-            #         SelfFlag = 1
-            #         ReFlag = 1
-            #
-            # if Page == 2  and ReFlag == 0:  # photo menu
-            #     if touch_event_current.X[0] > 135 and touch_event_current.X[0] < 160 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Home ...\r\n")
-            #         Page = 0
-            #         Read_BMP(PagePath[Page], 0, 0)
-            #         ReFlag = 1
-            #     elif touch_event_current.X[0] > 203 and touch_event_current.X[0] < 224 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Next page ...\r\n")
-            #         Photo_S += 1
-            #         if Photo_S > 2:  # 9 photos is a maximum of three pages
-            #             Photo_S = 0
-            #         ReFlag = 2
-            #     elif touch_event_current.X[0] > 71 and touch_event_current.X[0] < 92 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Last page ...\r\n")
-            #         if Photo_S == 0:
-            #             print("Top page ...\r\n")
-            #         else:
-            #             Photo_S -= 1
-            #             ReFlag = 2
-            #     elif touch_event_current.X[0] > 5 and touch_event_current.X[0] < 27 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Refresh ...\r\n")
-            #         SelfFlag = 1
-            #         ReFlag = 1
-            #     elif touch_event_current.X[0] > 2 and touch_event_current.X[0] < 293 and touch_event_current.Y[0] > 2 and touch_event_current.Y[0] < 96 and ReFlag == 0:
-            #         print("Select photo ...\r\n")
-            #         Page = 3
-            #         Read_BMP(PagePath[Page], 0, 0)
-            #         Photo_L = touch_event_current.X[0] // 96 + touch_event_current.Y[0] // 48 * 3 + Photo_S * 3 + 1
-            #         Show_Photo_Large(img, Photo_L)
-            #         ReFlag = 1
-            #     if ReFlag == 2:  # Refresh small photo
-            #         ReFlag = 1
-            #         Read_BMP(PagePath[Page], 0, 0)
-            #         Show_Photo_Small(img, Photo_S)   # show small photo
-            #
-            # if Page == 3  and ReFlag == 0:  # view the photo
-            #     if touch_event_current.X[0] > 268 and touch_event_current.X[0] < 289 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Photo menu ...\r\n")
-            #         Page = 2
-            #         Read_BMP(PagePath[Page], 0, 0)
-            #         Show_Photo_Small(img, Photo_S)
-            #         ReFlag = 1
-            #     elif touch_event_current.X[0] > 203 and touch_event_current.X[0] < 224 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Next photo ...\r\n")
-            #         Photo_L += 1
-            #         if Photo_L > 9:
-            #             Photo_L = 1
-            #         ReFlag = 2
-            #     elif touch_event_current.X[0] > 135 and touch_event_current.X[0] < 160 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Home ...\r\n")
-            #         Page = 0
-            #         Read_BMP(PagePath[Page], 0, 0)
-            #         ReFlag = 1
-            #     elif touch_event_current.X[0] > 71 and touch_event_current.X[0] < 92 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Last page ...\r\n")
-            #         if Photo_L == 1:
-            #             print("Top photo ...\r\n")
-            #         else:
-            #             Photo_L -= 1
-            #             ReFlag = 2
-            #     elif touch_event_current.X[0] > 5 and touch_event_current.X[0] < 27 and touch_event_current.Y[0] > 101 and touch_event_current.Y[0] < 124:
-            #         print("Refresh photo ...\r\n")
-            #         SelfFlag = 1
-            #         ReFlag = 1
-            #     if ReFlag == 2:    # Refresh large photo
-            #         ReFlag = 1
-            #         Show_Photo_Large(img, Photo_L)
+            the_screen = SCREENS[get_current_page()]
+            the_screen.handle_touch(row, col)
+            should_draw = True
 
 
 except IOError as e:
@@ -242,8 +146,8 @@ except IOError as e:
 except KeyboardInterrupt:
     log.info("ctrl + c")
     flag_t = 0
-    epd.sleep()
+    display.sleep()
     time.sleep(2)
     t1.join()
-    epd.Dev_exit()
+    display.Dev_exit()
     exit()

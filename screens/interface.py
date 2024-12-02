@@ -6,14 +6,16 @@ log = logging.getLogger(__name__)
 
 
 class AbstractScreen(ABC):
-    switching_to = False
-    last_event_time = None
-    registered_events = {}
+    def __init__(self):
+        self.switching_to = False
+        self.last_event_time = None
+        self.registered_events = {}
 
     def switch_to(self, img, draw):
         self.switching_to = True
         self.render(img, draw)
 
+    # TODO: somehow make this not require arguments (render should be isolated)
     @abstractmethod
     def render(self, img, draw):
         if layout.SHOW_GRIDLINES:
