@@ -165,6 +165,6 @@ def get_touch_cell(x, y):
     if row < MIN_ROW:
         row = MIN_ROW
 
-    log.info(f"Touched: ({x},{y}) = Column {col}, Row {row}")
+    log.debug(f"Touched: ({x},{y}) = Column {col}, Row {row}")
 
     return col, row

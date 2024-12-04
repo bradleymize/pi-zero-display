@@ -125,7 +125,7 @@ try:
                 and not current_timestamp_seconds == last_timestamp_seconds
         ):
             last_timestamp_seconds = current_timestamp_seconds
-            log.info("Time refresh")
+            log.debug("Time refresh")
             should_draw = True
 
         touch_panel.ICNT_Scan(touch_event_current, touch_event_old)
